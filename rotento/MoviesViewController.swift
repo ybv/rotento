@@ -11,6 +11,8 @@ import UIKit
 class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDelegate {
 
     @IBOutlet weak var tableView: UITableView!
+    var refreshControl: UIRefreshControl!
+    
     var movies: [NSDictionary]?
     
 
@@ -19,20 +21,30 @@ class MoviesViewController: UIViewController,UITableViewDataSource,UITableViewDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let YourApiKey = "dagqdghwaq3e3mxyrp7kmmj5"
-        let RottenTomatoesURLString = "http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=" + YourApiKey
         
-        let url = NSURL(string: RottenTomatoesURLString)
-        let request = NSURLRequest(URL: url!)
         
         nErrView.hidden = true
         
         tableView.dataSource = self
         tableView.delegate = self
-        fetchMovies(request)
+        self.fetchMovies()
+        
+        refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: "onRefresh", forControlEvents: UIControlEvents.ValueChanged)
+        tableView.insertSubview(refreshControl, atIndex: 0)
     }
     
-    func fetchMovies(request: NSURLRequest){
+    func onRefresh() {
+            self.fetchMovies()
+            self.refreshControl?.endRefreshing()
+    }
+    
+    func fetchMovies(){
+        let YourApiKey = "dagqdghwaq3e3mxyrp7kmmj5"
+        let RottenTomatoesURLString = "http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=" + YourApiKey
+        
+        let url = NSURL(string: RottenTomatoesURLString)
+        let request = NSURLRequest(URL: url!)
         MBProgressHUD.showHUDAddedTo(self.view, animated: true)
         NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue(), completionHandler:{ (response, data, error) in
             var errorValue: NSError? = nil
